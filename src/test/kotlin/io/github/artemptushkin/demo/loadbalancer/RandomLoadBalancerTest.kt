@@ -7,11 +7,11 @@ import org.hamcrest.Matchers.notNullValue
 import org.junit.jupiter.api.Test
 
 class RandomLoadBalancerTest : AbstractLoadBalancerTest() {
-    override fun createInstance(maximumNumberOfProviders: Int): LoadBalancer = RandomOrderLoadBalancer(maximumNumberOfProviders)
+    override fun createInstance(maximumNumberOfProviders: Int, healthCheckInterval: Long): LoadBalancer = RandomOrderLoadBalancer(maximumNumberOfProviders, healthCheckInterval)
 
     @Test
     fun itReturnsProviders() {
-        val loadBalancer = createInstance(3)
+        val loadBalancer = createInstance(3, 300)
 
         loadBalancer.register(AlwaysAliveProviderRegistry())
         loadBalancer.register(AlwaysAliveProviderRegistry())

@@ -4,10 +4,22 @@ import io.github.artemptushkin.demo.api.LoadBalancer
 import io.github.artemptushkin.demo.api.Provider
 import io.github.artemptushkin.demo.api.ProviderRegistry
 import io.github.artemptushkin.demo.exception.ProviderRegistryException
+import kotlinx.coroutines.*
+import java.util.*
 
-class RandomOrderLoadBalancer(private val maximumNumberOfProviders: Int) : LoadBalancer {
-    private val providers: MutableList<Provider> = mutableListOf()
+class RandomOrderLoadBalancer(private val maximumNumberOfProviders: Int, private val healthCheckInterval: Long) : LoadBalancer {
+    private val providers: MutableList<Provider> = Collections.synchronizedList(mutableListOf())
     private val randomRange = (0 until maximumNumberOfProviders)
+
+    init {
+        CoroutineScope(Dispatchers.IO)
+            .launch {
+                while (isActive) {
+                    providers.removeIf { !it.isAlive() }
+                    delay(healthCheckInterval)
+                }
+            }
+    }
 
     override fun register(providerRegistry: ProviderRegistry): Provider {
         if (maximumNumberOfProviders == providers.size) {

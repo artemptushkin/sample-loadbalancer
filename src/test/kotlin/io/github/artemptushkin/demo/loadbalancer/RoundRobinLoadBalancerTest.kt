@@ -7,11 +7,11 @@ import org.hamcrest.Matchers.sameInstance
 import org.junit.jupiter.api.Test
 
 class RoundRobinLoadBalancerTest: AbstractLoadBalancerTest() {
-    override fun createInstance(maximumNumberOfProviders: Int): LoadBalancer = RoundRobinLoadBalancer(maximumNumberOfProviders)
+    override fun createInstance(maximumNumberOfProviders: Int, healthCheckInterval: Long): LoadBalancer = RoundRobinLoadBalancer(maximumNumberOfProviders, healthCheckInterval)
 
     @Test
     fun itReturnsProvidersInSequentialOrder() {
-        val loadBalancer = createInstance(3)
+        val loadBalancer = createInstance(3, 300)
 
         val provider1 = loadBalancer.register(AlwaysAliveProviderRegistry())
         val provider2 = loadBalancer.register(AlwaysAliveProviderRegistry())
