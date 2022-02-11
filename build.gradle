@@ -1,5 +1,5 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.5.31'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.0'
 }
 
 group 'io.github.artemptushkin'
@@ -11,4 +11,10 @@ repositories {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
+	testImplementation 'org.junit.jupiter:junit-jupiter:5.7.0'
+	testImplementation 'org.hamcrest:hamcrest-library:2.2'
+}
+
+tasks.withType(Test) {
+	useJUnitPlatform()
 }
