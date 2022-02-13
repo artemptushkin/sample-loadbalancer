@@ -7,17 +7,29 @@ import io.github.artemptushkin.demo.exception.ProviderRegistryException
 import kotlinx.coroutines.*
 import java.util.*
 
-abstract class AbstractLoadBalancer(private val maximumNumberOfProviders: Int, private val healthCheckInterval: Long): LoadBalancer {
-    protected val providers: MutableList<Provider> = Collections.synchronizedList(mutableListOf())
+abstract class AbstractLoadBalancer(
+    private val maximumNumberOfProviders: Int,
+    private val healthCheckInterval: Long,
+    private val aliveChecksResurrection: Int
+) : LoadBalancer {
+    private val providers: MutableMap<Provider, Int> = Collections.synchronizedMap(LinkedHashMap())
+    private val heartBeater = HeartBeater(aliveChecksResurrection)
 
     init {
         CoroutineScope(Dispatchers.IO)
             .launch {
                 while (isActive) {
-                    providers.removeIf { !it.isAlive() }
+                    heartBeater.beat(providers)
                     delay(healthCheckInterval)
                 }
             }
+    }
+
+    protected fun aliveProviders(): MutableList<Provider> {
+        return providers
+            .filter { heartBeater.isAlive(it.value) }
+            .map { it.key }
+            .toMutableList()
     }
 
     abstract fun resolveProvider(): Provider
@@ -27,20 +39,20 @@ abstract class AbstractLoadBalancer(private val maximumNumberOfProviders: Int, p
             throw ProviderRegistryException("The maximum amount of registered providers - $maximumNumberOfProviders has been reached")
         }
         val provider = providerRegistry.register(SERVICE_ID_PATTERN.format(providers.size + 1))
-        providers.add(provider)
+        providers[provider] = aliveChecksResurrection
         return provider
     }
 
     override fun exclude(provider: Provider) {
-        providers.removeIf { it.getServiceId() == provider.getServiceId() }
+        providers.remove(provider)
     }
 
     override fun exclude(serviceId: String) {
-        providers.removeIf { it.getServiceId() == serviceId }
+        providers.entries.removeIf { it.key.getServiceId() == serviceId }
     }
 
     override fun get(): Provider {
-        if (providers.isEmpty()) {
+        if (aliveProviders().isEmpty()) {
             throw ProviderRegistryException("No providers have been registered")
         }
         return this.resolveProvider()

@@ -3,7 +3,7 @@ package io.github.artemptushkin.demo.loadbalancer
 import io.github.artemptushkin.demo.api.LoadBalancer
 import io.github.artemptushkin.demo.exception.ProviderRegistryException
 import io.github.artemptushkin.demo.provider.AlwaysAliveProviderRegistry
-import io.github.artemptushkin.demo.provider.RandomFailureProviderRegistry
+import io.github.artemptushkin.demo.provider.AlwaysDeadProviderRegistry
 import org.awaitility.Awaitility
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
@@ -52,8 +52,8 @@ abstract class AbstractLoadBalancerTest {
     @Test
     fun itRemovesDeadProviders() {
         val loadBalancer = createInstance(2, 200)
-        loadBalancer.register(RandomFailureProviderRegistry())
-        loadBalancer.register(RandomFailureProviderRegistry())
+        loadBalancer.register(AlwaysDeadProviderRegistry())
+        loadBalancer.register(AlwaysDeadProviderRegistry())
 
         Awaitility.await()
             .during(Duration.ofSeconds(5))

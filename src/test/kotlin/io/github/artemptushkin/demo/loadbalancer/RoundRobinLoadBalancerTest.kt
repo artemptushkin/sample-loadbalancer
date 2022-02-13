@@ -6,8 +6,9 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.sameInstance
 import org.junit.jupiter.api.Test
 
-class RoundRobinLoadBalancerTest: AbstractLoadBalancerTest() {
-    override fun createInstance(maximumNumberOfProviders: Int, healthCheckInterval: Long): LoadBalancer = RoundRobinLoadBalancer(maximumNumberOfProviders, healthCheckInterval)
+class RoundRobinLoadBalancerTest : AbstractLoadBalancerTest() {
+    override fun createInstance(maximumNumberOfProviders: Int, healthCheckInterval: Long): LoadBalancer =
+        RoundRobinLoadBalancer(maximumNumberOfProviders, healthCheckInterval, 2)
 
     @Test
     fun itReturnsProvidersInSequentialOrder() {
