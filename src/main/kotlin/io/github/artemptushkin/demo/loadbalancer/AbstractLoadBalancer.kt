@@ -14,7 +14,7 @@ abstract class AbstractLoadBalancer(
     private val aliveChecksResurrection: Int
 ) : LoadBalancer {
     private val providers: MutableMap<Provider, Int> = Collections.synchronizedMap(LinkedHashMap())
-    private val heartBeater = HeartBeater(aliveChecksResurrection)
+    private val heartBeater = ResurrectionHeartBeater(aliveChecksResurrection)
 
     init {
         CoroutineScope(Dispatchers.IO)

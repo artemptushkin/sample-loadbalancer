@@ -1,13 +1,14 @@
 package io.github.artemptushkin.demo.loadbalancer
 
+import io.github.artemptushkin.demo.api.HeartBeater
 import io.github.artemptushkin.demo.api.Provider
 
 /**
  * This class can be inner io.github.artemptushkin.demo.loadbalancer.AbstractLoadBalancer but externalized on purpose of testing
  */
-class HeartBeater(private val aliveChecksResurrection: Int) {
+class ResurrectionHeartBeater(private val aliveChecksResurrection: Int): HeartBeater {
 
-    fun beat(providers: MutableMap<Provider, Int>) {
+    override fun beat(providers: MutableMap<Provider, Int>) {
         providers.replaceAll { provider, currentCounter ->
             if (!provider.isAlive()) {
                 0

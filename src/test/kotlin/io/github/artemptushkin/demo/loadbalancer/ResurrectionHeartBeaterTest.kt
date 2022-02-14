@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 
-class HeartBeaterTest {
+class ResurrectionHeartBeaterTest {
     companion object {
         const val TIMES_TO_RESURRECT = 2
         const val ALIVE_LAST_TIME = 1
@@ -20,7 +20,7 @@ class HeartBeaterTest {
 
         val providers = mutableMapOf(provider to ALIVE_LAST_TIME)
 
-        val heartBeater = HeartBeater(TIMES_TO_RESURRECT)
+        val heartBeater = ResurrectionHeartBeater(TIMES_TO_RESURRECT)
         for (i in 0 until TIMES_TO_RESURRECT) {
             heartBeater.beat(providers)
         }
@@ -34,7 +34,7 @@ class HeartBeaterTest {
 
         val providers = mutableMapOf(provider to ALIVE_LAST_TIME)
 
-        val heartBeater = HeartBeater(TIMES_TO_RESURRECT)
+        val heartBeater = ResurrectionHeartBeater(TIMES_TO_RESURRECT)
 
         for (i in 0 until TIMES_TO_RESURRECT) {
             heartBeater.beat(providers)
@@ -51,7 +51,7 @@ class HeartBeaterTest {
 
         val providers = mutableMapOf(provider to DEAD_LAST_TIME)
 
-        val heartBeater = HeartBeater(TIMES_TO_RESURRECT)
+        val heartBeater = ResurrectionHeartBeater(TIMES_TO_RESURRECT)
 
         for (i in 0 until TIMES_TO_RESURRECT) {
             heartBeater.beat(providers)
@@ -68,7 +68,7 @@ class HeartBeaterTest {
 
         val providers = mutableMapOf(provider to DEAD_LAST_TIME)
 
-        val heartBeater = HeartBeater(TIMES_TO_RESURRECT)
+        val heartBeater = ResurrectionHeartBeater(TIMES_TO_RESURRECT)
         for (i in 0 until TIMES_TO_RESURRECT - 1) {
             heartBeater.beat(providers)
         }
@@ -76,11 +76,11 @@ class HeartBeaterTest {
         assertIsDead(heartBeater, providers[provider]!!)
     }
 
-    private fun assertIsAlive(heartBeater: HeartBeater, currentHealthCheckCounter: Int) {
+    private fun assertIsAlive(heartBeater: ResurrectionHeartBeater, currentHealthCheckCounter: Int) {
         assertThat(heartBeater.isAlive(currentHealthCheckCounter), Matchers.`is`(true))
     }
 
-    private fun assertIsDead(heartBeater: HeartBeater, currentHealthCheckCounter: Int) {
+    private fun assertIsDead(heartBeater: ResurrectionHeartBeater, currentHealthCheckCounter: Int) {
         assertThat(heartBeater.isAlive(currentHealthCheckCounter), Matchers.`is`(false))
     }
 
