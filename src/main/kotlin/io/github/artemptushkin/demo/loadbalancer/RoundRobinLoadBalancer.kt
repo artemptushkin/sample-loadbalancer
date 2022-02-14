@@ -7,11 +7,10 @@ class RoundRobinLoadBalancer(maximumNumberOfProviders: Int, healthCheckInterval:
     AbstractLoadBalancer(maximumNumberOfProviders, healthCheckInterval, aliveChecksResurrection) {
     private val position = AtomicInteger()
 
-    override fun resolveProvider(): Provider {
-        if (position.get() == aliveProviders().size) {
+    override fun resolveProvider(aliveProviders: List<Provider>): Provider {
+        if (position.get() == aliveProviders.size) {
             position.set(0)
         }
-        val currentPosition = position.getAndIncrement()
-        return aliveProviders()[currentPosition]
+        return aliveProviders[position.getAndIncrement()]
     }
 }

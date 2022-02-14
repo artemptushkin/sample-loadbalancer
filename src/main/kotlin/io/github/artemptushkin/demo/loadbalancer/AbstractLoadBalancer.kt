@@ -3,6 +3,7 @@ package io.github.artemptushkin.demo.loadbalancer
 import io.github.artemptushkin.demo.api.LoadBalancer
 import io.github.artemptushkin.demo.api.Provider
 import io.github.artemptushkin.demo.api.ProviderRegistry
+import io.github.artemptushkin.demo.exception.ProviderLoadException
 import io.github.artemptushkin.demo.exception.ProviderRegistryException
 import kotlinx.coroutines.*
 import java.util.*
@@ -25,14 +26,7 @@ abstract class AbstractLoadBalancer(
             }
     }
 
-    protected fun aliveProviders(): MutableList<Provider> {
-        return providers
-            .filter { heartBeater.isAlive(it.value) }
-            .map { it.key }
-            .toMutableList()
-    }
-
-    abstract fun resolveProvider(): Provider
+    abstract fun resolveProvider(aliveProviders: List<Provider>): Provider
 
     override fun register(providerRegistry: ProviderRegistry): Provider {
         if (maximumNumberOfProviders == providers.size) {
@@ -52,10 +46,20 @@ abstract class AbstractLoadBalancer(
     }
 
     override fun get(): Provider {
-        if (aliveProviders().isEmpty()) {
-            throw ProviderRegistryException("No providers have been registered")
+        val aliveProviders = aliveProviders()
+        if (aliveProviders.isEmpty()) {
+            throw ProviderRegistryException("No alive providers are available. Consider to register one or wait until any is alive")
         }
-        return this.resolveProvider()
+        if (aliveProviders.all { it.isBusy() }) {
+            throw ProviderLoadException("All providers are busy")
+        }
+        return this.resolveProvider(aliveProviders)
+    }
+
+    private fun aliveProviders(): List<Provider> {
+        return providers
+            .filter { heartBeater.isAlive(it.value) }
+            .map { it.key }
     }
 
     private companion object {
