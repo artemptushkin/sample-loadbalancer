@@ -15,7 +15,10 @@ import org.hamcrest.Matchers.sameInstance
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTime
 
 abstract class AbstractLoadBalancerTest {
 
@@ -41,6 +44,15 @@ abstract class AbstractLoadBalancerTest {
         val loadBalancer = createInstance(1, 300)
         val provider = loadBalancer.register(AlwaysAliveProviderRegistry(capacity = 3))
         loadBalancer.exclude(provider)
+
+        assertThrows<ProviderRegistryException> { loadBalancer.get() }
+    }
+
+    @Test
+    fun itExcludesByServiceId() {
+        val loadBalancer = createInstance(1, 300)
+        val provider = loadBalancer.register(AlwaysAliveProviderRegistry(capacity = 3))
+        loadBalancer.exclude(provider.getServiceId())
 
         assertThrows<ProviderRegistryException> { loadBalancer.get() }
     }
@@ -83,5 +95,27 @@ abstract class AbstractLoadBalancerTest {
 
             assertThrows<ProviderLoadException> { loadBalancer.get() }
         }
+    }
+
+    /**
+     * it should not take longer then the slowest request which is 1sec plus the execution time
+     */
+    @Test
+    @ExperimentalTime
+    fun itHandlesMultipleParallelRequests() {
+        val loadBalancer = createInstance(3, 200)
+        loadBalancer.register(AlwaysAliveProviderRegistry(capacity = 3))
+        loadBalancer.register(AlwaysAliveProviderRegistry(capacity = 2))
+        loadBalancer.register(AlwaysAliveProviderRegistry(capacity = 10))
+
+        val time = measureTime {
+            runBlocking {
+                for (i in 0 until 15) {
+                    async { loadBalancer.get().doRequest() }
+                }
+            }
+        }
+
+        assertThat(time, Matchers.lessThanOrEqualTo(1100.milliseconds))
     }
 }
